@@ -1,5 +1,9 @@
 class GfilesController < ApplicationController
   before_action :set_gfile, only: [:show, :edit, :update, :destroy]
+  skip_before_filter :authenticate_user!, :only => [:getfile, :show]
+  
+  #ssl_required :edit, :update, :destroy, :create
+  #ssl_allowed :show, :getfile
 
   # GET /gfiles
   # GET /gfiles.json
@@ -13,6 +17,12 @@ class GfilesController < ApplicationController
   # GET /gfiles/1
   # GET /gfiles/1.json
   def show
+  end
+  
+  def getfile
+    infoid = Infohash.where(:code => params['fcode'], :htype => Gfile::HTYPE).first
+    fileid = infoid.gfile
+    redirect_to fileid.filename.url
   end
 
   # GET /gfiles/new

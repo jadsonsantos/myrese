@@ -1,19 +1,22 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Publications</h1>
+<h1><%= @publications.length %> Publications</h1>
 
 <table border="1">
   <thead>
     <tr>
       <th style="min-width:200px">General title</th>
-      <th>Publication type</th>
-      <th style="min-width:80px">ISSN</th>
+      <th>Journal/Book/Collection</th>
+      <th style="min-width:80px">ISSN/ISBN</th>
       <th style="min-width:200px">Title</th>
       <th style="min-width:200px">Authors</th>
       <th style="min-width:50px">Year</th>
+      <% if current_user then %>
       <th>Members</th>
       <th>Tags</th>
       <th style="min-width:80px">Visibility</th>
+      <% end %>
+      <th>Attachments</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -21,9 +24,15 @@
   <tbody>
     <% @publications.each do |publication| %>
       <tr>
-        <td><%= publication.infohash.gtitle %></td>
-        <td><%= publication.pubtype.name %></td>
-        <td><%= publication.issn %></td>
+        <td><%= publication.infohash.gtitle %>
+        <br/><br/><i><%= "Last update:"+publication.updated_at.to_s %></i>
+        </td>
+        <td><%= publication.ctitle %><br/>
+        <i>Type:
+        <%= if publication.pubtype_id == 5 then "conference\n(inproceedings)" else publication.pubtype.name end %>
+        </i>
+        </td>
+        <td><%= publication.issn %><br/><%= publication.isbn %></td>
         <td><%= publication.title %></td>
         <td style="width: 250px">
           <% publication.publication_profiles.order(:orderv).each do |pp| %>
@@ -44,6 +53,7 @@
           <% end %>
         </td>
         <td><%= publication.year %></td>
+        <% if current_user then %>
         <td>
           <b><%= publication.infohash.user.username %> (owner)</b> <br>
           <% publication.infohash.infohash_users.each do |u| %> 
@@ -63,6 +73,21 @@
           <% end %>
         </td>
         <td><%= publication.visibility.vtype %></td>
+        <% end %>
+        <td>
+          <% publication.infohash.attachments.each do |t| %> 
+            <% if not t.name.empty? then %>
+               <%= link_to t.name, t.infohash2 %>
+            <% else %>
+               <%= link_to t.infohash2.gtitle, t.infohash2 %>
+            <% end %>   
+            <%= link_to "(delete)", [publication.infohash, t] ,method: :delete,  data: { confirm: 'Are you sure?' } %>
+          <br>
+          <% end %>
+          <% if current_user then %>
+          <%= link_to "New attachment", new_infohash_attachment_path(publication.infohash) %>
+          <% end %>
+        </td>
         
         <td>
           <div class="btn-group" role="group" aria-label="...">
@@ -81,4 +106,7 @@
 
 <br>
 
+<% if current_user then %>
 <%= link_to 'New Publication', new_publication_path, class: 'btn btn-default' %>
+<% end %>
+

@@ -1,22 +1,29 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
+  
+  config.web_console.whitelisted_ips = '187.1.51.157'
 
   # mailer configuration!
-  config.action_mailer.default_url_options = { host: 'myrese.org', port: 80 }
-
+  config.action_mailer.default_url_options = { host: ENV['MYRESE_HOST'] } #'myrese.com'
+  #config.action_mailer.delivery_method = :mailgun
+  config.action_mailer.mailgun_settings = {
+		api_key: ENV['DEV_MAIL_MAILGUN_TOKEN'],
+		domain: ENV['DEV_MAIL_MAILGUN_HOST']
+  }
   config.action_mailer.delivery_method = :smtp
+
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
   config.action_mailer.smtp_settings = {
     :enable_starttls_auto => true,  
-    :address            => 'smtp.gmail.com',
-    :port               => 587,
+    :address            => ENV['DEV_MAIL_HOST'], #smtp.gmail.com
+    :port               => ENV['DEV_MAIL_PORT'], #587
     #:tls                  => true,
     #:domain             => 'gmail.com', #you can also use google.com
     # FOR GMAIL, YOU HAVE TO ALLOW 'LESS SECURE' APPLICATIONS IN YOUR PROFILE...
     :authentication     => :plain,
-    :user_name          => ENV['GMAIL_USER'],
-    :password           => ENV['GMAIL_PWD']
+    :user_name          => ENV['DEV_MAIL_USER'],
+    :password           => ENV['DEV_MAIL_PWD']
   }
 
   #host = 'localhost'#'myrese-imcoelho.c9.io'#'my_app.c9.io'

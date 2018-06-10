@@ -1,10 +1,17 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   
-  # begin mailer configuration
-  config.action_mailer.default_url_options = { host: 'myrese.org', port: 80 }
+  config.web_console.development_only = false   # TODO remove
 
+  # begin mailer configuration
+  # mailer configuration!
+  config.action_mailer.default_url_options = { :protocol => 'https', host: ENV['MYRESE_HOST'] } #myrese.com
   config.action_mailer.delivery_method = :smtp
+  config.action_mailer.mailgun_settings = {
+		api_key: ENV['PROD_MAIL_MAILGUN_TOKEN'],
+		domain: ENV['PROD_MAIL_MAILGUN_HOST']
+}
+#  config.action_mailer.delivery_method = :smtp
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
   config.action_mailer.smtp_settings = {
@@ -29,6 +36,8 @@ Rails.application.configure do
 
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false
+  config.consider_all_requests_local       = true # TODO
+  
   config.action_controller.perform_caching = true
 
   # Enable Rack::Cache to put a simple HTTP cache in front of your application

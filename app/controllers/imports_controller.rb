@@ -19,6 +19,14 @@ class ImportsController < ApplicationController
     @import = Import.new
   end
 
+  # GET /imports/doimport/*ipath (as ipath)
+  def doimport
+    @import = Import.new
+    @import.url = params[:ipath]
+    
+    render :new
+  end
+
   # GET /imports/1/edit
   def edit
   end
@@ -126,6 +134,7 @@ class ImportsController < ApplicationController
   def create
     @import = Import.new(import_params)
     @import.user_id = current_user.id;
+    @import.url = ""  # never store url
     
     logger.info @import.jsondata
     if (@import.jsondata == "") || (@import.jsondata[0]!='{')
@@ -153,10 +162,199 @@ class ImportsController < ApplicationController
             logger.info object.errors.messages.as_json
           end
         end
-    end
-    
-    @import.url = "";
+    elsif (infohash_data["curriculo_lattes"])
+      logger.info "scriptLattes!"
+       
+      pesqs = infohash_data["curriculo_lattes"]["pesquisador"]
+      if pesqs.class == Hash then
+        pesqs = []
+        pesqs.push infohash_data["curriculo_lattes"]["pesquisador"]
+      end
+      pesqs.each do |pesq|
+        
+        papers = []
+        if pesq.has_value?("artigos_em_periodicos") then
+          papers = pesq["artigos_em_periodicos"]["artigo"]
+        end
+        if papers.class == Hash then
+          papers = []
+          papers.push pesq["artigos_em_periodicos"]["artigo"]
+        end
+        papers.each do |paper|
+          
+          logger.info pesq["identificacao"]["nome_inicial"] + " => " + paper["titulo"]
 
+          pplist = []
+          orderv = 1
+          paper["autores"].split(";").each do |autor|
+            autor.strip!
+            pplist.push({'author' => autor, 'orderv' => orderv})
+            orderv+=1
+          end
+
+          #logger.info "pplist:"+pplist
+          pubhash = {
+            'gtitle'      => paper["titulo"], # for infohash
+            'gdescription'  => paper["titulo"], # for infohash
+            'visibility_id' => 3, #PUBLIC # for infohash
+            'htype_id'      => 1, #PUBLICATION # for infohash
+            'title'      => paper["titulo"],
+            'ctitle'     => paper["revista"],
+            'year'       => paper["ano"],
+            'volume'     => paper["volume"],
+            'number'     => paper["numero"],
+            'doi'        => paper["doi"],
+            'page_begin' => paper["paginas"].split("-")[0],
+            'page_end'   => paper["paginas"].split("-")[1],
+            'publication_profiles' => pplist, 
+            'pubtype_id' => 1, # article
+          }
+          
+          #pubhash["publication_profiles"] = JSON[pubhash["publication_profiles"]]
+          
+          if Publication.joins(:infohash).where("infohashes.user_id = ?", current_user.id).where(:title => paper["titulo"]).length > 0 then
+            #logger.info ""
+            logger.info "REPETIDO"
+            #logger.info JSON[pubhash]
+            #logger.info ""
+          else
+            object = build_publication(pubhash)
+            if object
+              @import.infohash = object.infohash
+
+              if not object.save
+                logger.info "after save:"
+                logger.info object.errors.messages.as_json
+              end
+            end
+            object = nil # start again
+          end
+
+        end  # artigos em periodicos
+
+
+        conferences = []
+        if pesq.has_value?("trabalho_completo_congresso") then
+          conferences = pesq["trabalho_completo_congresso"]["trabalho_completo"]
+        end
+        if conferences.class == Hash then
+          conferences = []
+          conferences.push pesq["trabalho_completo_congresso"]["trabalho_completo"]
+        end
+        conferences.each do |paper|
+          logger.info pesq["identificacao"]["nome_inicial"] + " => " + paper["titulo"]
+
+          pplist = []
+          orderv = 1
+          paper["autores"].split(";").each do |autor|
+            autor.strip!
+            pplist.push({'author' => autor, 'orderv' => orderv})
+            orderv+=1 
+          end
+
+          #logger.info "pplist:"+pplist
+          pubhash = {
+            'gtitle'      => paper["titulo"], # for infohash
+            'gdescription'  => paper["titulo"], # for infohash
+            'visibility_id' => 3, #PUBLIC # for infohash
+            'htype_id'      => 1, #PUBLICATION # for infohash
+            'title'      => paper["titulo"],
+            'ctitle'     => paper["nome_evento"],
+            'year'       => paper["ano"],
+            'volume'     => paper["volume"],
+            'doi'        => paper["doi"],
+            'page_begin' => paper["paginas"].split("-")[0],
+            'page_end'   => paper["paginas"].split("-")[1],
+            'publication_profiles' => pplist, 
+            'pubtype_id' => 5, # inproceedings
+          }
+          
+          #pubhash["publication_profiles"] = JSON[pubhash["publication_profiles"]]
+          
+          if Publication.joins(:infohash).where("infohashes.user_id = ?", current_user.id).where(:title => paper["titulo"]).length > 0 then
+            #logger.info ""
+            logger.info "REPETIDO"
+            #logger.info JSON[pubhash]
+            #logger.info ""
+          else
+            object = build_publication(pubhash)
+            if object
+              @import.infohash = object.infohash
+
+              if not object.save
+                logger.info "after save:"
+                logger.info object.errors.messages.as_json
+              end
+            end
+            object = nil # start again
+          end
+
+        end  # conferencias
+        
+        chapters = []
+        if pesq.has_value?("capitulos_livros") then
+          chapters = pesq["capitulos_livros"]["capitulo"]
+        end
+        if chapters.class == Hash then
+          chapters = []
+          chapters.push pesq["capitulos_livros"]["capitulo"]
+        end
+        chapters.each do |paper|
+          logger.info paper
+          logger.info pesq["identificacao"]["nome_inicial"] + " => " + paper["titulo"]
+
+          pplist = []
+          orderv = 1
+          paper["autores"].split(";").each do |autor|
+            autor.strip!
+            pplist.push({'author' => autor, 'orderv' => orderv})
+            orderv+=1
+          end
+
+          #logger.info "pplist:"+pplist
+          pubhash = {
+            'gtitle'      => paper["titulo"], # for infohash
+            'gdescription'  => paper["titulo"], # for infohash
+            'visibility_id' => 3, #PUBLIC # for infohash
+            'htype_id'      => 1, #PUBLICATION # for infohash
+            'title'      => paper["titulo"],
+            'ctitle'     => paper["livro"],
+            'year'       => paper["ano"],
+            'volume'     => paper["volume"],
+            'publisher'  => paper["editora"],
+            'series'     => paper["edicao"],
+            'page_begin' => paper["paginas"].split("-")[0],
+            'page_end'   => paper["paginas"].split("-")[1],
+            'publication_profiles' => pplist, 
+            'pubtype_id' => 4, # chapter
+          }
+          
+          #pubhash["publication_profiles"] = JSON[pubhash["publication_profiles"]]
+          
+          if Publication.joins(:infohash).where("infohashes.user_id = ?", current_user.id).where(:title => paper["titulo"]).length > 0 then
+            #logger.info ""
+            logger.info "REPETIDO"
+            #logger.info JSON[pubhash]
+            #logger.info ""
+          else
+            object = build_publication(pubhash)
+            if object
+              @import.infohash = object.infohash
+
+              if not object.save
+                logger.info "after save:"
+                logger.info object.errors.messages.as_json
+              end
+            end
+            object = nil # start again
+          end
+
+        end  # capitulo livro
+
+      end # pesquisador
+    end # scriptLattes
+    
+    @import.url = ""  # never store url
     respond_to do |format|
       if (object && (not object.errors.any?))
         format.html { redirect_to @import, notice: 'Import was successfully created.' }

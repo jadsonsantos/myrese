@@ -14,15 +14,21 @@ gem "paperclip", '4.3.7' #"~> 5.0.0"
 #gem "paperclip", git: "git://github.com/thoughtbot/paperclip.git"
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.5'
+gem 'rails', '4.2.7.1'
 
 #gem 'tlsmail'
 
-gem 'devise', '3.5.10' # '4.2.0'
+gem 'mailgun_rails'
+
+gem 'devise', '4.2.0'
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 
-gem 'postgresql'
+gem 'postgresql' # why?
+
+gem "recaptcha", require: "recaptcha/rails"
+
+#gem 'ssl_requirement'
 
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
@@ -54,6 +60,8 @@ end
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+gem 'web-console', '3.1.1'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -61,7 +69,7 @@ end
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
-  gem 'web-console', '~> 2.0'
+  #gem 'web-console', '~> 2.0'
   #gem 'puma', '2.11.1'
   #gem 'passenger'
 

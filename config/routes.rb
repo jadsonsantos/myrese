@@ -1,11 +1,16 @@
 Rails.application.routes.draw do
 
+
   resources :imports
+  get '/imports/doimport/*ipath' => 'imports#doimport', as: 'ipath'
+  
   resources :infohash_members
   root to: "mainpage#index"
   
-  devise_for :users
-
+  scope format: true, defaults: { format: 'html' } do
+     devise_for :users, controllers: {registrations: "registrations", passwords: "passwords"}
+  end
+  
   #namespace :api, defaults: {format: 'json'} do
   namespace :api do
     namespace :v1 do
@@ -63,6 +68,10 @@ Rails.application.routes.draw do
   resources :projects do
     resources :project_profiles
   end
+
+  get '/userpublications/:uname' => 'publications#indexbyuser', as: 'uname'
+  get '/grouppublications/:gname' => 'publications#indexbygroup', as: 'gname'
+  get '/f/:fcode' => 'gfiles#getfile', as: 'fcode'
   
   resources :publications do
     resources :publication_profiles
@@ -70,6 +79,7 @@ Rails.application.routes.draw do
   
   resources :infohashes do
     resources :infohash_users
+    resources :attachments
   end
   
   

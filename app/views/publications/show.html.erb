@@ -6,6 +6,10 @@
 </p>
 
 <p>
+  <b>Import link:</b> <%= link_to "/imports/doimport/"+instanceName+"/api/v1/publications/" + @publication.id.to_s, "/imports/doimport/"+instanceName+"/api/v1/publications/" + @publication.id.to_s %>
+</p>
+
+<p>
   <strong>Import path:</strong>
   <%= "/api/v1/publications/" + @publication.id.to_s + ".json"%>
 </p>
@@ -31,13 +35,8 @@
 </p>
 
 <p>
-  <strong>ISSN:</strong>
-  <%= @publication.issn %>
-</p>
-
-<p>
-  <strong>ISBN:</strong>
-  <%= @publication.isbn %>
+  <strong>ISSN/ISBN:</strong>
+  <%= @publication.issn %>&nbsp;<%= @publication.isbn %>
 </p>
 
 <p>

@@ -1,5 +1,6 @@
 class PublicationsController < ApplicationController
   before_action :set_publication, only: [:show, :edit, :update, :destroy]
+  skip_before_filter :authenticate_user!, :only => [:indexbyuser, :indexbygroup, :show]
 
   # GET /publications
   # GET /publications.json
@@ -18,8 +19,56 @@ class PublicationsController < ApplicationController
     @publications  = Publication.joins(:infohash_users).joins(:infohash).where("infohash_users.user_id = ?", current_user.id)
     @publications += Publication.joins(:infohash).where("infohashes.user_id = ?", current_user.id)
     @publications.uniq!
+    #@publications.order('year DESC')
+    @publications.sort_by!{|pub| -pub[:year] }
     
   end
+  
+  def indexbyuser
+    #@publications = Publication.all
+    
+    # AUTOMATIC JOIN
+    #@publications = Publication.joins(:infohash_users).joins(:infohash).where("infohash_users.user_id = ?", current_user.id).or(
+    #                Publication.joins(:infohash_users).joins(:infohash).where("infohashes.user_id = ?", current_user.id)
+    #).uniq
+    # SELECT "publications".* FROM "publications" INNER JOIN "infohashes" ON "infohashes"."id" = "publications"."infohash_id" 
+    # INNER JOIN "infohash_users" ON "infohash_users"."infohash_id" = "infohashes"."id" INNER JOIN "infohashes" "infohashes_publications" ON "infohashes_publications"."id" = "publications"."infohash_id" 
+    # WHERE ((infohash_users.user_id = 1) OR (infohashes.user_id = 1))
+    
+    userid = User.where(:username => params['uname']).first
+    
+    #MANUAL JOIN
+    @publications  = Publication.joins(:infohash_users).joins(:infohash).where("infohash_users.user_id = ? AND infohashes.visibility_id = ?", userid.id, 3)
+    @publications += Publication.joins(:infohash).where("infohashes.user_id = ? AND infohashes.visibility_id = ?", userid.id, 3)
+    @publications.uniq!
+    @publications.sort_by!{|pub| -pub[:year] }
+    
+    render action: "index", notice: 'Listing publications for '+params['uname']
+  end
+
+  def indexbygroup
+    groupid = Group.where('lower(name) = ?', params['gname'].downcase).first
+    logger.info "groupid ="+groupid.id.to_s
+    groupmembers = GroupUser.where(:group_id => groupid.id)
+    
+    uids = []
+    groupmembers.each do |gm|
+      uids.push gm.user_id
+    end
+    
+    logger.info "uids:"+uids.to_s
+    
+    logger.info "GROUP:"+groupmembers.to_s
+    #MANUAL JOIN
+    
+    @publications  = Publication.joins(:infohash).where("infohashes.user_id IN (?) AND infohashes.visibility_id = ?", uids, 3)
+    
+    @publications.uniq!
+    @publications.order(:year)
+    
+    render action: "index", notice: 'Listing publications for '+params['gname']
+  end
+
 
   # GET /publications/1
   # GET /publications/1.json

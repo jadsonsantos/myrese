@@ -15,12 +15,15 @@
   <%= @profile.citation %>
 </p>
 
+<% if current_user %>
 <p>
   <strong>Username</strong>
   <% if @profile.user %>
     <%= @profile.user.username %>
   <% end %>
 </p>
+
+<% if current_user && current_user.id == @profile.user_id then %>
 
 <p>
   <strong>Email</strong>
@@ -48,10 +51,20 @@
 </p>
 
 <p>
+  
   <strong>Positions:</strong>
   <br>
-  <%= link_to "Add Position", new_profile_position_path(@profile) %>
+  <%= link_to "Add Position (TODO)", new_profile_position_path(@profile) %>
 </p>
+
+<% end %>
+
+</p>
+   <strong>Publications:</strong> <%= link_to "/userpublications/"+@profile.user.username, "/userpublications/"+@profile.user.username %>
+<p>
+
+
+<% end %>
 
 <br>
 
